@@ -1,0 +1,7 @@
+env
+.env
+Rag_agent/db.sqlite3
+Rag_agent/db
+Rag_agent/agent/migrations
+Rag_agent/agent/__pycache__
+Rag_agent/Rag_agent/__pycache__
