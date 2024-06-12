@@ -2,6 +2,7 @@ from django.db import models, migrations
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from pgvector.django import VectorExtension, VectorField
+from langchain_community.docstore.document import Document
 # Create your models here.
 
 class Migration(migrations.Migration):
@@ -21,5 +22,7 @@ class UploadedUrl(models.Model):
     def __str__(self):
         return self.url
 
-# class Embeddings(models.Model):
-#     embedding = VectorField(dimensions=1536)
+class Embeddings(models.Model):
+    embedding = VectorField(dimensions=1536)
+      
+

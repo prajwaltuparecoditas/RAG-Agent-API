@@ -1,5 +1,3 @@
-from langchain_core.runnables import RunnablePassthrough
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders import PyPDFLoader, WebBaseLoader
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma, FAISS
@@ -32,6 +30,7 @@ def pdf_ans(pdf_path: str, user_query: str, user_id: int) -> str:
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     documents = text_splitter.split_documents(pages)
     vector = utils.store_embeddings(documents=documents)
+    vector = utils.load_database()
     crud.store_url(pdf_path, user_id)
   
   response = retrieve_response(user_query, vector)
@@ -55,23 +54,17 @@ def web_ans(url: str, user_query: str, user_id:int) -> str:
     try:
       loader = WebBaseLoader(url)
       data = loader.load()
-      text_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=200)
+      text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
       documents = text_splitter.split_documents(data)
       vector = utils.store_embeddings(documents=documents)
-      print("user_id",user_id)
+      vector = utils.load_database()
       user = User.objects.get(id=int(user_id))
-      crud.store_url(url, user)
-      print(f"vector: {vector} \n")
+      crud.store_url(url, user_id)
       response = retrieve_response(user_query, vector)
       return response
     except Exception as e:
        print(e)
-         
-
-
-
-
-    
+             
     
 # tool to provide responses based on the youtube url or video_id provided by the user
 @tool

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .login-container {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #f8f9fa;
+      }
+
+      .login-box {
+        width: 400px;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        background-color: #fff;
+      }
+
+      .snackbar {
+        visibility: hidden;
+        min-width: 250px;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 2px;
+        padding: 16px;
+        position: fixed;
+        z-index: 1;
+        left: 50%;
+        bottom: 30px;
+        font-size: 17px;
+        transform: translateX(-50%);
+      }
+
+      .snackbar.show {
+        visibility: visible;
+        animation: fadein 0.5s, fadeout 0.5s 2.5s;
+      }
+
+      @keyframes fadein {
+        from {
+          bottom: 0;
+          opacity: 0;
+        }
+
+        to {
+          bottom: 30px;
+          opacity: 1;
+        }
+      }
+
+      @keyframes fadeout {
+        from {
+          bottom: 30px;
+          opacity: 1;
+        }
+
+        to {
+          bottom: 0;
+          opacity: 0;
+        }
+      }
+      .header {
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      .sub-heading {
+        margin-bottom: 30px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="login-container">
+      <div class="header">
+        <a href="http://127.0.0.1:8000/">
+          <h1>RAG-BOT</h1>
+        </a>
+      </div>
+      <div class="sub-heading">
+        <h3>Retrieval Augmented Generation based Chatbot</h3>
+      </div>
+      <div class="login-box">
+        <h2 class="text-center">Login</h2>
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="username">Username:</label>
+            <input
+              type="text"
+              class="form-control"
+              id="username"
+              name="username"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="password">Password:</label>
+            <input
+              type="password"
+              class="form-control"
+              id="password"
+              name="password"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Login</button>
+        </form>
+        <div class="text-center mt-3">
+          <p>
+            Don't have an account?
+            <a href="http://127.0.0.1:8000/register/">Sign Up</a>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div id="snackbar"></div>
+
+    <script>
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+
+          const form = event.target;
+          const formData = new FormData(form);
+          const data = Object.fromEntries(formData.entries());
+          const snackbar = document.getElementById("snackbar");
+
+          try {
+            const response = await fetch("http://127.0.0.1:8000/api/signin/", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+              snackbar.innerHTML =
+                '<i class="fas fa-check-circle"></i> Login successful!';
+              snackbar.className = "snackbar show";
+              // You can store the token here for future use
+              localStorage.setItem("Token", result.token);
+              localStorage.setItem("user_id", result.user_id);
+
+              setTimeout(() => {
+                snackbar.className = snackbar.className.replace("show", "");
+                window.location.href = "http://127.0.0.1:8000/chat/"; // Redirect to chat page
+              }, 3000);
+            } else {
+              snackbar.innerHTML =
+                '<i class="fas fa-times-circle"></i> Login failed: ' +
+                (result.username?.detail || JSON.stringify(result));
+              snackbar.className = "snackbar show";
+              setTimeout(() => {
+                snackbar.className = snackbar.className.replace("show", "");
+              }, 3000);
+            }
+          } catch (error) {
+            snackbar.innerHTML =
+              '<i class="fas fa-times-circle"></i> Error: ' + error.message;
+            snackbar.className = "snackbar show";
+            setTimeout(() => {
+              snackbar.className = snackbar.className.replace("show", "");
+            }, 3000);
+          }
+        });
+    </script>
+    <script
+      src="https://kit.fontawesome.com/a076d05399.js"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>

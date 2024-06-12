@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RAG Based Chatbot Project</title>
+    <style>
+      /* Basic reset */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      /* Body styling */
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        background-color: #f4f4f4;
+        color: #333;
+      }
+
+      /* Header styling */
+      header {
+        background-color: rgba(0, 71, 165, 0.73);
+        color: #fff;
+        padding: 10px 0;
+      }
+
+      header nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      header .logo {
+        font-size: 24px;
+        font-weight: bold;
+      }
+
+      header ul {
+        list-style: none;
+        display: flex;
+      }
+
+      header ul li {
+        margin-left: 20px;
+      }
+
+      header ul li a {
+        color: #fff;
+        text-decoration: none;
+        padding: 7px 15px;
+        transition: background-color 0.3s;
+      }
+
+      header ul li a:hover {
+        background-color: #575757;
+        border-radius: 5px;
+      }
+
+      /* Main section styling */
+      main {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .hero {
+        text-align: center;
+      }
+
+      .hero h1 {
+        font-size: 36px;
+        margin-bottom: 20px;
+      }
+
+      .hero p {
+        font-size: 18px;
+        margin-bottom: 20px;
+      }
+
+      .hero button {
+        background-color: #333;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .hero button:hover {
+        background-color: #575757;
+      }
+
+      /* Footer styling */
+      footer {
+        text-align: center;
+        padding: 20px 0;
+        background-color: rgba(0, 71, 165, 0.73);
+        color: #fff;
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav>
+        <div class="logo">RAG-BOT</div>
+        <ul>
+          <li><a href="http://127.0.0.1:8000/">Home</a></li>
+          <!-- <li><a href="#">Contact</a></li> -->
+          <li><a href="http://127.0.0.1:8000/register/">Sign Up</a></li>
+          <li><a href="http://127.0.0.1:8000/login/">Log In</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <section class="hero">
+        <h1>Welcome to the RAG Based Chatbot Project</h1>
+        <p>
+          Providing users with a platform to get answers to questions through
+          the context provided by any kind of website URL or YouTube video.
+        </p>
+        <p>
+          This project aims to solve the problem of LLMs where they can't keep
+          up with the latest information. Using Retrieval Augmented Generation,
+          we solve the Needle in the Haystack problem, ensuring accurate
+          information retrieval and reducing misinformation.
+        </p>
+        <button onclick="redirectToPage()">Get Started</button>
+      </section>
+    </main>
+    <footer>
+      <p>&copy; 2024 RAG Based Chatbot Project. All rights reserved.</p>
+    </footer>
+    <script>
+      function redirectToPage() {
+        window.location.href = "http://127.0.0.1:8000/register/";
+      }
+    </script>
+  </body>
+</html>

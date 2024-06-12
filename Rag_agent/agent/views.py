@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from rest_framework import status
 from rest_framework.views import APIView
@@ -8,12 +8,17 @@ from rest_framework.authentication import BasicAuthentication, SessionAuthentica
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain import hub
 from .serializers import UserRegisterSerializer, UserLoginSerializer
 from .models import User
 from dotenv import load_dotenv
 from .tools import tools
-from .rag_utils import llm
+from .rag_utils import llm, get_session_history
+from .forms import UserRegistrationForm
+import requests
+from django.http import HttpResponse
+from langchain_core.runnables.history import RunnableWithMessageHistory
 
 # API to sign up a new user
 class UserRegisterAPIView(APIView):
@@ -21,14 +26,29 @@ class UserRegisterAPIView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        serializer = UserRegisterSerializer(data=request.data)
-        
+        data = request.data
+            
+        serializer = UserRegisterSerializer(data=data)
+       
+
         if serializer.is_valid():
-            serializer.save()
+            # Save user data to PostgreSQL
+            user_data = serializer.validated_data
+            user = User.objects.create_user(
+                username=user_data['username'],
+                first_name=user_data['first_name'],
+                last_name=user_data['last_name'],
+                email=user_data['email'],
+                password=user_data['password1']
+            )
+            # Generate token
+            token = Token.objects.create(user=user)
+            
             response = {
                 'success': True,
                 'user': serializer.data,
-                'token': Token.objects.get(user=User.objects.get(username=serializer.data['username'])).key
+                'user_id': user.id,
+                'token': token.key
             }
             return Response(response, status=status.HTTP_200_OK)
         raise ValidationError(serializer.errors, code=status.HTTP_406_NOT_ACCEPTABLE)
@@ -53,10 +73,12 @@ class UserLoginAPIView(APIView):
                 login(request,user)
                  
                 token,created = Token.objects.get_or_create(user=user)
+               
                 response = {
                     'success': True,
                     'username': user.username,
                     'email': user.email,
+                    'user_id': {user.id},
                     'token': token.key
                 }
                 return Response(response, status=status.HTTP_200_OK)
@@ -68,8 +90,9 @@ class UserLogoutAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args):
-        print(request.user.id)
-        token = Token.objects.get(user_id=request.user.id)
+       
+        user_id = int(request.data['user_id'])
+        token = Token.objects.get(user_id=user_id)
         logout(request)
         token.delete()
 
@@ -81,15 +104,40 @@ class RagAgent(APIView):
     load_dotenv()
 
     prompt = hub.pull("hwchase17/openai-tools-agent")
+    prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system",
+            "You are a helpful assistant who will help with chatting and providing accurate information to the  users. You are provided the tools for dealing with the resource that the user has provided. Only use tools if the query asks for a specific data."),
+        MessagesPlaceholder(variable_name="chat_history"),
+        ("human","{input}"),
+        MessagesPlaceholder(variable_name="agent_scratchpad"),
+    ]
+)
     agent = create_tool_calling_agent(llm, tools, prompt)
-    agent_executor = AgentExecutor(agent=agent, tools=tools)
-
+    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=False)
+    agent_with_history = RunnableWithMessageHistory(
+        agent_executor,
+        get_session_history,
+        input_messages_key="input",
+        output_messages_key="output",
+        history_messages_key="chat_history",
+    )
     def post(self, request, format=None):
-        resource = request.data.get('resource')
-        # pdf_file = request.FILES.get('pdf_file')
-        user_query = request.data.get('query')
-        user_id = request.POST.get('user_id')
-        print("user_id",user_id)
-        response = self.agent_executor.invoke({"input":f"user_query: {user_query} url:{resource} user_id:{user_id}"})
+        resource = request.data['resource']
+        user_query = request.data['query']
+        user_id = request.data['user_id']
+        
+        response = self.agent_with_history.invoke({"input":f"user_query: {user_query} url:{resource} user_id:{user_id}"}, {"configurable":{"session_id":request.session.session_key}})
         return Response({'response': response['output']})
     
+
+def register(request):
+    return render(request, 'signup.html')
+
+def homepage(request):
+    return render(request, "index.html")
+def login_user(request):
+    return render(request,'login.html')
+def chat(request):
+    return render(request, 'chat.html')
+
